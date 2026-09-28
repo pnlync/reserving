@@ -16,5 +16,8 @@ switch(stage,
   uncertainty = run_uncertainty_main(),
   lic = run_lic(),
   one_year = run_one_year(),
+  backtest = run_backtest(),
+  calibration = run_calibration(),
+  one_year_backtest = run_one_year_backtest(),
   stop("unknown stage: ", stage)
 )

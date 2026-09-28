@@ -1,8 +1,10 @@
-# make all: raw CSV -> outputs (pre-lock stages; post-lock stages are added after the tag).
+# make all: raw CSV -> outputs. Post-reveal stages (backtest, calibration, one_year_backtest)
+# need the git tag selection-locked; reveal() stops without it.
 R := Rscript
 
-.PHONY: all load checks diagnostics deterministic select excel uncertainty lic one_year memo test
-all: load checks diagnostics deterministic select excel uncertainty lic one_year memo test
+.PHONY: all prelock load checks diagnostics deterministic select excel uncertainty lic one_year backtest calibration one_year_backtest memo test
+prelock: load checks diagnostics deterministic select excel uncertainty lic one_year
+all: prelock backtest calibration one_year_backtest memo test
 
 load:
 	$(R) R/run.R load
@@ -22,6 +24,12 @@ lic:
 	$(R) R/run.R lic
 one_year:
 	$(R) R/run.R one_year
+backtest:
+	$(R) R/run.R backtest
+calibration:
+	$(R) R/run.R calibration
+one_year_backtest:
+	$(R) R/run.R one_year_backtest
 test:
 	$(R) -e 'testthat::test_dir("tests/testthat", reporter = "summary", stop_on_failure = TRUE)'
 

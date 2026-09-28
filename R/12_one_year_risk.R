@@ -118,3 +118,58 @@ plot_one_year <- function(out, s2, code) {
                    col = c("#C62828", "black"), lty = c(1, 2), lwd = 2, bty = "n", cex = 0.8)
   grDevices::dev.off()
 }
+
+# ---- One-year back-test (post-reveal) ----
+
+# Actual one-year CDR with the automatic rules: R_2007 and R_2008 both from auto_reserve().
+actual_cdr_auto <- function(full, code, a, v0 = VALUATION_YEAR) {
+  x <- cohort(full, v0)
+  r0 <- sum(auto_reserve(as_at(x, v0), code, a)$unpaid)
+  r1 <- sum(auto_reserve(as_at(x, v0 + 1), code, a)$unpaid)
+  inc <- cum_to_inc(insurer_triangles(x, code)$paid)
+  ays <- as.integer(rownames(inc))
+  j <- v0 + 1 - ays + 1
+  paid <- sum(inc[cbind(seq_along(ays), pmin(j, 10))][j <= 10])
+  r0 - (paid + r1)
+}
+
+panel_one_year <- function(full, codes, a, spec, seeds, R = spec$replicates$panel_insurer, v0 = VALUATION_YEAR) {
+  up0 <- as_at(cohort(full, v0), v0)
+  rows <- lapply(seq_along(codes), function(i) {
+    code <- codes[i]
+    tr <- insurer_triangles(up0, code)
+    out <- tryCatch({
+      sims <- selected_bootstrap(tr$paid, tr$premium, R = R, seed = seeds$one_year_rereserve + i,
+                                 window = a$ldf$window, th = a$selection_thresholds, prior_cv = spec$prior_uncertainty$cv)
+      r0 <- sum(lean_reserve(tr$paid, tr$premium, a$ldf$window, a$selection_thresholds)$unpaid)
+      rr <- simulate_rereserve(tr$paid, tr$premium, sims, a$ldf$window, a$selection_thresholds)
+      cdr_sim <- r0 - (rr$paid_year + rr$closing)
+      y <- actual_cdr_auto(full, code, a, v0)
+      data.frame(grcode = code, cdr_actual = y, cdr_sim_mean = mean(cdr_sim), cdr_sim_sd = stats::sd(cdr_sim),
+                 p = mid_rank_p(cdr_sim, y))
+    }, error = function(e) data.frame(grcode = code, cdr_actual = NA, cdr_sim_mean = NA, cdr_sim_sd = NA, p = NA))
+    out
+  })
+  do.call(rbind, rows)
+}
+
+run_one_year_backtest <- function() {
+  full <- full_data()
+  a <- read_config("assumptions_2007")
+  spec <- locked_yaml("config/stochastic_spec.yaml")
+  seeds <- read_config("seeds")
+  sims <- utils::read.csv(path_in("outputs", "one_year_cdr_sims.csv"))
+  rolling <- utils::read.csv(path_in("outputs", "backtest_rolling.csv"))
+  cdr_2008 <- rolling$cdr[rolling$valuation == VALUATION_YEAR + 1]
+  panels <- utils::read.csv(path_in("outputs", "panels.csv"))
+  cal <- utils::read.csv(path_in("outputs", "calibration_panel.csv"))
+  codes <- cal$grcode[cal$bootstrap_ok]
+  po <- panel_one_year(full, codes, a, spec, seeds)
+  utils::write.csv(po, path_in("outputs", "one_year_panel.csv"), row.names = FALSE)
+  p <- stats::na.omit(po$p)
+  st <- calibration_stats(p)
+  res <- data.frame(item = c("main_cdr_2008_actual", "main_cdr_2008_percentile", "panel_n", "panel_cov_q75", "panel_ks_d", "panel_ks_crit", "panel_mean_p"),
+                    value = c(cdr_2008, mid_rank_p(sims$cdr, cdr_2008), st$n, st$cov_q75, st$ks_d, st$ks_crit, st$mean_p))
+  utils::write.csv(res, path_in("outputs", "one_year_backtest.csv"), row.names = FALSE)
+  invisible(res)
+}
