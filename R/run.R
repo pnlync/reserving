@@ -9,5 +9,6 @@ stage <- commandArgs(TRUE)[1]
 switch(stage,
   load = print(load_raw()),
   checks = run_checks(),
+  diagnostics = run_diagnostics(),
   stop("unknown stage: ", stage)
 )
