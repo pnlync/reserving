@@ -54,8 +54,10 @@ calibrate_panel <- function(full, codes, a, spec, seeds, v0 = VALUATION_YEAR) {
   do.call(rbind, rows)
 }
 
-# Widening sensitivity (spec §7.2): x' = median * exp(lambda * log(x / median)); fit lambda on a
-# random half so that q75 coverage is closest to 75%, test on the other half.
+# Widening sensitivity (spec §7.2): x' = median * exp(lambda * log(x / median)); lambda is fitted
+# on a random half to minimise the total gap between two-sided 50/75/90/95% coverage and nominal
+# (the raw result shows intervals that are too narrow rather than off-centre), then tested on
+# the other half. Sensitivity only.
 widening_sensitivity <- function(cal, seed) {
   ok <- cal[cal$bootstrap_ok, ]
   set.seed(seed)
@@ -67,13 +69,20 @@ widening_sensitivity <- function(cal, seed) {
     if (med <= 0 || y <= 0) return(mid_rank_p(x, y))
     mid_rank_p(x, med * exp(log(y / med) / lambda))
   }, numeric(1))
+  levels <- c(0.50, 0.75, 0.90, 0.95)
+  gap <- function(p) sum(abs(vapply(levels, function(c) mean(abs(p - 0.5) <= c / 2), numeric(1)) - levels))
   grid <- seq(0.8, 4, by = 0.05)
-  cov_fit <- vapply(grid, function(l) mean(p_widen(fit_idx, l) <= 0.75), numeric(1))
-  lambda <- grid[which.min(abs(cov_fit - 0.75))]
+  obj <- vapply(grid, function(l) gap(p_widen(fit_idx, l)), numeric(1))
+  lambda <- grid[which.min(obj)]
   test_idx <- setdiff(seq_len(nrow(ok)), fit_idx)
-  list(lambda = lambda, cov_q75_fit = cov_fit[which.min(abs(cov_fit - 0.75))],
-       cov_q75_test_raw = mean(ok$p_custom[test_idx] <= 0.75),
-       cov_q75_test_widened = mean(p_widen(test_idx, lambda) <= 0.75), n_fit = length(fit_idx), n_test = length(test_idx))
+  pt_raw <- ok$p_custom[test_idx]
+  pt_w <- p_widen(test_idx, lambda)
+  two <- function(p, c) mean(abs(p - 0.5) <= c / 2)
+  list(lambda = lambda, n_fit = length(fit_idx), n_test = length(test_idx),
+       cov_q75_test_raw = mean(pt_raw <= 0.75), cov_q75_test_widened = mean(pt_w <= 0.75),
+       c50_test_raw = two(pt_raw, 0.5), c50_test_widened = two(pt_w, 0.5),
+       c90_test_raw = two(pt_raw, 0.9), c90_test_widened = two(pt_w, 0.9),
+       gap_test_raw = gap(pt_raw), gap_test_widened = gap(pt_w))
 }
 
 plot_pp <- function(cal, file) {

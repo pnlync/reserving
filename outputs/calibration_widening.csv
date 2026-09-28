@@ -1,0 +1,12 @@
+"item","value"
+"lambda",1.4
+"n_fit",22
+"n_test",23
+"cov_q75_test_raw",0.608695652173913
+"cov_q75_test_widened",0.652173913043478
+"c50_test_raw",0.391304347826087
+"c50_test_widened",0.478260869565217
+"c90_test_raw",0.782608695652174
+"c90_test_widened",0.869565217391304
+"gap_test_raw",0.534782608695652
+"gap_test_widened",0.1
