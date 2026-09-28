@@ -42,3 +42,5 @@ data/holdout/*
 reports/memo_figures/
 reports/*.typ
 outputs/*.rds
+tests/testthat/_problems/
+tests/testthat/testthat-problems.rds

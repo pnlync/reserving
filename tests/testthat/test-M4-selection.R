@@ -49,7 +49,8 @@ test_that("automatic selection allocates exactly its unpaid", {
 })
 
 test_that("no holdout-derived output exists in git history before the tag", {
-  post_lock <- c("outputs/backtest_main.csv", "outputs/lic_2007.csv", "outputs/one_year_cdr_sims.csv", "outputs/cv_numbers.json")
+  # Outputs that need the holdout (cy >= 2008). LIC and the one-year simulation use upper data only.
+  post_lock <- c("outputs/backtest_main.csv", "outputs/panel_backtest.csv", "outputs/calibration_panel.csv", "outputs/cv_numbers.json")
   root <- project_root()
   tag_exists <- lock_tag_exists(root)
   range <- if (tag_exists) "selection-locked" else "HEAD"
