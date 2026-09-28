@@ -44,3 +44,8 @@ reports/*.typ
 outputs/*.rds
 tests/testthat/_problems/
 tests/testthat/testthat-problems.rds
+
+# Site build intermediates (docs/ is the published output)
+site/assets/
+site/.quarto/
+site/_freeze/

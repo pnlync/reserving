@@ -1,0 +1,29 @@
+---
+title: "Selection at 31 December 2007"
+---
+
+```{r}
+source("_setup.R")
+sel <- read.csv(out("selection_2007.csv"))
+```
+
+Paid is the base triangle, with factors volume-weighted over the latest five diagonals and a log-linear tail of 1.0023. Methods follow a rule on paid percent developed z: chain ladder at 70% or more, Benktander at 30–70%, and BF with a leave-one-out Cape Cod prior below 30%. One documented exception applies: mature years use incurred chain ladder, because a pseudo-historical test at 2004–2006 showed paid chain ladder under-predicting. The rules were committed before any analysis and the selection was locked before the reveal.
+
+```{r}
+knitr::kable(data.frame(AY = sel$ay, `Net premium` = mm(sel$prem_net), Paid = mm(sel$paid), z = pct(sel$pct_dev),
+  `Paid CL` = mm(sel$ult_cl_paid), `Incurred CL` = mm(sel$ult_cl_inc), `Paid BF` = mm(sel$ult_bf_paid),
+  Benktander = mm(sel$ult_bk), Method = sel$method, Selected = mm(sel$ult_sel), ULR = pct(sel$ulr_sel),
+  Unpaid = mm(sel$unpaid), check.names = FALSE), align = "r", caption = "USD m, net of reinsurance.")
+```
+
+```{r}
+#| layout-ncol: 2
+#| out-width: 100%
+knitr::include_graphics(c(fig("m4_selection_vs_methods.png"), fig("m2_paid_incurred_ratio.png")))
+```
+
+```{r}
+#| layout-ncol: 2
+#| out-width: 100%
+knitr::include_graphics(c(fig("m2_ata_paid.png"), fig("m2_mack_residuals_paid.png")))
+```

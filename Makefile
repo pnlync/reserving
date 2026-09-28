@@ -2,9 +2,11 @@
 # need the git tag selection-locked; reveal() stops without it.
 R := Rscript
 
+
+.PHONY: cv_numbers site
 .PHONY: all prelock load checks diagnostics deterministic select excel uncertainty lic one_year backtest calibration one_year_backtest memo test
 prelock: load checks diagnostics deterministic select excel uncertainty lic one_year
-all: prelock backtest calibration one_year_backtest memo test
+all: prelock backtest calibration one_year_backtest cv_numbers memo site test
 
 load:
 	$(R) R/run.R load
@@ -35,3 +37,8 @@ test:
 
 memo:
 	cd reports && RENV_PROJECT=$(CURDIR) quarto render reserving_memo.qmd
+cv_numbers:
+	$(R) R/run.R cv_numbers
+
+site:
+	cd site && RENV_PROJECT=$(CURDIR) quarto render

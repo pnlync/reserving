@@ -1,0 +1,39 @@
+project:
+  type: website
+  output-dir: ../docs
+  resources:
+    - assets/*
+
+website:
+  title: "GI Reserving: a blind back-test"
+  navbar:
+    left:
+      - href: index.qmd
+        text: Summary
+      - href: selection.qmd
+        text: Selection
+      - href: backtest.qmd
+        text: Back-test
+      - href: uncertainty.qmd
+        text: Uncertainty
+      - href: application.qmd
+        text: IFRS 17 & one-year risk
+      - href: assets/reserving_memo.pdf
+        text: Memo (PDF)
+    right:
+      - icon: github
+        href: https://github.com/pnlync/reserving
+  page-footer:
+    center: "Data: CAS Loss Reserving Database (NAIC Schedule P), compiled by S&P Global Market Intelligence for the Casualty Actuarial Society. Net of reinsurance, US business. IFRS 17 and Solvency II figures are illustrative methodology demonstrations, not accounting or regulatory numbers for any company. Insurers are identified by NAIC code only."
+
+format:
+  html:
+    theme: cosmo
+    fontsize: 1rem
+    max-width: 1100px
+    toc: false
+
+execute:
+  echo: false
+  warning: false
+  message: false

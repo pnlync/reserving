@@ -1,0 +1,36 @@
+---
+title: "Uncertainty and calibration"
+---
+
+```{r}
+source("_setup.R")
+unc <- read.csv(out("m6_uncertainty_summary.csv"))
+cal <- read.csv(out("calibration_summary.csv"))
+```
+
+```{r}
+knitr::kable(data.frame(Model = unc$model, Mean = mm(unc$mean), SD = mm(unc$sd), CV = pct(unc$cv),
+  `75th pct` = ifelse(is.na(unc$q75), "–", mm(unc$q75)), `99.5th pct` = ifelse(is.na(unc$q995), "–", mm(unc$q995)), check.names = FALSE),
+  align = "lrrrrr", caption = "Unpaid claims distribution at 2007-12-31, USD m.")
+```
+
+```{r}
+#| layout-ncol: 2
+#| out-width: 100%
+knitr::include_graphics(c(fig("m6_reserve_distribution.png"), fig("m6_tornado.png")))
+```
+
+**Calibration.** For each of `r d$n_panel_stochastic` insurers, the actual 2008–2016 payments (to 120 months) were placed in that insurer's own predictive distribution. If the distributions were right, the percentiles would be uniform.
+
+```{r}
+knitr::kable(data.frame(Model = c("Custom bootstrap (selected rules)", "Package ODP (pure CL)", "Mack (lognormal)"),
+  `Covered by 75th pct` = pct(cal$cov_q75), `50% interval` = pct(cal$c50), `90% interval` = pct(cal$c90),
+  `KS D` = formatC(cal$ks_d, format = "f", digits = 3), `KS 5% critical` = formatC(cal$ks_crit, format = "f", digits = 3), check.names = FALSE), align = "lrrrrr")
+```
+
+```{r}
+#| out-width: 55%
+knitr::include_graphics(fig("m6_calibration_pp.png"))
+```
+
+The custom bootstrap is centred but too narrow. The package ODP and Mack distributions are biased low, as Meyers (2019) found on the older data. A widening factor fitted on half the insurers (λ = `r d$widening_lambda`) and tested on the other half is a sensitivity only; the raw coverage is the result.

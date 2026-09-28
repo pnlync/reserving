@@ -6,8 +6,13 @@ format:
     papersize: a4
     margin:
       x: 2cm
-      y: 1.6cm
-    fontsize: 10pt
+      y: 1.3cm
+    fontsize: 9.5pt
+    include-before-body:
+      - text: |
+          #set table(inset: (x: 5pt, y: 2.2pt))
+          #set par(leading: 0.55em)
+          #show heading: set block(above: 0.9em, below: 0.5em)
 execute:
   echo: false
   warning: false
@@ -33,6 +38,19 @@ pct <- function(x, d = 1) paste0(formatC(100 * x, format = "f", digits = d), "%"
 ae <- aggregate(cbind(expected, actual) ~ valuation + variant, ph, sum)
 ae$ae <- ae$actual / ae$expected
 aev <- function(val, var) ae$ae[ae$valuation == val & ae$variant == var]
+cv <- jsonlite::read_json(out("cv_numbers.json"))
+d <- cv$display
+unc <- read.csv(out("m6_uncertainty_summary.csv"))
+mk <- read.csv(out("m6_mack.csv"))
+sens <- read.csv(out("m6_sensitivities.csv"))
+bt <- read.csv(out("backtest_main.csv"))
+roll <- read.csv(out("backtest_rolling.csv"))
+cal <- read.csv(out("calibration_summary.csv"))
+wid <- read.csv(out("calibration_widening.csv"))
+lic <- read.csv(out("lic_2007.csv"))
+oy <- read.csv(out("m8_one_year_summary.csv"))
+li <- function(item) lic$value[lic$item == item]
+copy_fig <- function(f) { dir.create("memo_figures", showWarnings = FALSE); invisible(file.copy(out(file.path("figures", f)), "memo_figures/", overwrite = TRUE)); file.path("memo_figures", f) }
 ```
 
 *Data: CAS Loss Reserving Database (NAIC Schedule P), compiled by S&P Global Market Intelligence for the Casualty Actuarial Society. Net of reinsurance, US business. The IFRS 17 and Solvency II figures are illustrative methodology demonstrations, not accounting or regulatory numbers for any company. Insurers are identified by NAIC code only. Amounts in USD millions unless stated.*
@@ -79,15 +97,52 @@ knitr::kable(tab, align = "r")
 
 ```{r}
 #| fig-cap: "Selected vs method ultimates and the insurer's booked ultimate (loss ratio). US commercial auto, net, NAIC Schedule P, as at 2007-12-31."
-#| out-width: 85%
+#| out-width: 62%
 # Typst reads files only below the document folder, so the figure is copied next to the memo.
 dir.create("memo_figures", showWarnings = FALSE)
 invisible(file.copy(out("figures/m4_selection_vs_methods.png"), "memo_figures/", overwrite = TRUE))
 knitr::include_graphics("memo_figures/m4_selection_vs_methods.png")
 ```
 
-**Uncertainty.** *To be completed after the lock with the frozen stochastic specification (M6): Mack and ODP bootstrap standard errors, the custom bootstrap of the selected reserve, and sensitivities (ELR ±5 points, tail, window, incurred vs paid, calendar-year inflation, thresholds).*
+**Uncertainty.** All distributions use the stochastic specification frozen at the lock. The custom ODP bootstrap resamples the selected reserve itself. On each of `r d$n_sims` pseudo-triangles it re-estimates the factors, the tail and the leave-one-out prior (with 10% lognormal prior noise), then applies the locked method table. The incurred-CL uplift for AY 1998–2005 is carried as a fixed load run off with the paid pattern.
+
+```{r}
+#| tbl-cap: "Reserve uncertainty, USD m. Mack and the package bootstrap model pure chain ladder; the custom bootstrap models the locked selection."
+u <- unc
+u$model <- c("Mack, paid (with tail)", "Mack, incurred (with tail)", "Package ODP bootstrap (pure CL, no tail)", "Custom bootstrap of selected reserve")
+knitr::kable(data.frame(Model = u$model, Mean = mm(u$mean), SD = mm(u$sd), CV = pct(u$cv),
+  `75th pct` = ifelse(is.na(u$q75), "–", mm(u$q75)), `99.5th pct` = ifelse(is.na(u$q995), "–", mm(u$q995)), check.names = FALSE), align = "lrrrrr")
+```
+
+Mack splits the paid SE into process `r mm(mk$process_se[mk$basis == "paid" & is.na(mk$ay)])`m and parameter `r mm(mk$parameter_se[mk$basis == "paid" & is.na(mk$ay)])`m. The custom bootstrap is wider than the pure-CL models (CV `r d$boot_cv`) because it adds prior uncertainty and the BF weight on young years. Judgemental assumptions outside the bootstrap: +2% a year calendar inflation adds `r d$sens_inflation_2pct`; ELR ±5 points moves unpaid by ±`r d$sens_elr_5pp`; incurred instead of paid lowers it by 1.4%; tail ×0.5/×1.5, window and threshold changes move it by 1.2% or less (`outputs/m6_sensitivities.csv`).
+
+**Application layer (illustrative).** Discounting the simulated cash flows (plus 5% ULAE) on the GSW US Treasury zero curve at 31 December 2007 gives a discounted best estimate of USD `r mm(li("discounted_be"))`m. A 75% confidence-level risk adjustment of USD `r mm(li("ra_75"))`m (`r pct(li("ra_over_be"))` of BE) gives an **illustrative net IFRS 17 LIC of USD `r mm(li("lic"))`m**. The risk adjustment corresponds to a 75% confidence level. Re-reserving `r d$n_sims` simulated 2008 years with the locked rules gives a 1-in-200 one-year deterioration of **`r d$l995_over_be` of opening BE**, against 27% (3 × 9%) under the Solvency II standard formula for reserve risk. The Merz–Wüthrich one-year SE for pure chain ladder is USD `r mm(oy$value[oy$item == "mw_cdr_se"])`m. This is a reserve-risk-only benchmark on US data, not an SCR.
 
 ## 3. Validation and limitations (post-reveal addendum)
 
-*Written after the reveal (M5).*
+*Written after the 2008–2016 run-off was revealed. Pages 1–2 above were fixed before the reveal and are unchanged.*
+
+**Blind back-test.** Scored with the formulas fixed in `CONTRACT.md`, reading the selection from the tag:
+
+- **Test A (paid to 120 months, headline).** Payments projected for 2008–2016 came to USD `r mm(sum(bt$pred_to120_sel))`m against USD `r mm(sum(bt$actual_to120))`m actually paid. The locked estimate was **`r d$err_paid120_selected` short**; pure paid chain ladder was `r d$err_paid120_cl` short.
+- **Test B (120-month incurred proxy, AY 1999–2007).** Against the proxy unpaid of USD `r mm(sum(bt$proxy_unpaid[bt$ay > 1998]))`m, the selection was `r d$err_inc120_selected` low, pure chain ladder `r d$err_inc120_cl` low and the insurer's booked reserve `r d$err_inc120_booked` low. **The locked selection beat both pure chain ladder and the insurer's own booked estimate.**
+- **Test C (2008 A/E).** Actual 2008 payments were `r d$ae_next_2008` × expected, so the first year was on track.
+- **Test D (rolling re-reserve).** Mechanical re-reserving showed deterioration in 2008 (USD `r mm(-roll$cdr[roll$valuation == 2008])`m), 2009 (`r mm(-roll$cdr[roll$valuation == 2009])`m) and 2010 (`r mm(-roll$cdr[roll$valuation == 2010])`m), with small movements after that. The 2008 deterioration sits at the `r d$main_cdr_2008_percentile` point of the simulated one-year distribution, well inside it.
+
+```{r}
+#| layout-ncol: 2
+#| fig-cap: "US commercial auto, net, NAIC Schedule P, valuation 2007-12-31."
+#| fig-subcap:
+#|   - "Unpaid at 2007 vs the 120-month incurred proxy (AY 1999–2007)"
+#|   - "Calibration p-p plot across panel insurers"
+#| out-width: 88%
+knitr::include_graphics(c(copy_fig("m5_three_way.png"), copy_fig("m6_calibration_pp.png")))
+```
+
+**What hindsight would change, and was it knowable?** Late development after 2007 exceeded every method. The pre-lock evidence did point this way: heavier recent mid-lag factors, pseudo-historical A/E above 1 in every test, and an insurer whose own bookings had always developed upwards. Those signals moved the selection above chain ladder and far above the booked figure, but not far enough. With hindsight, an explicit calendar-year trend, or stronger weight on incurred for AY 2004–2007, would have closed more of the gap; the +2% inflation sensitivity alone covered less than half of it.
+
+**Across insurers.** The same automatic rules on `r d$n_panel_backtest` insurers reduced the median absolute Test A error from `r d$med_err_cl_panel` (pure chain ladder) to `r d$med_err_rule_panel`. The gain is not uniform: the rule beat chain ladder for about half of the insurers, and the smallest third have errors above 50%. Only `r d$share_panel_booked_below_proxy` of insurers had booked 2007 reserves below the proxy, so this insurer's under-reserving was unusual.
+
+**Calibration.** On `r d$n_panel_stochastic` insurers, the custom bootstrap's 75th percentile covered **`r d$cov_q75_panel`** of actual outcomes (nominal 75%). The two-sided 50% and 90% intervals covered `r d$cov_c50_panel` and `r d$cov_c90_panel`, and the p-p plot is S-shaped, so the intervals are too narrow rather than off-centre. KS D = `r d$ks_d_panel` against a critical value of `r d$ks_crit_panel` (not rejected at 5%). The package ODP and Mack distributions covered only `r d$cov_q75_panel_package_odp`, sit above the diagonal (biased low) and are rejected by KS. This is consistent with Meyers (2019) on the 1988–97 data. A widening factor fitted on half the panel (λ = `r d$widening_lambda`) cut the two-sided coverage gap on the other half from `r formatC(wid$value[wid$item == "gap_test_raw"], format = "f", digits = 2)` to `r formatC(wid$value[wid$item == "gap_test_widened"], format = "f", digits = 2)`. This is reported as a sensitivity only. The one-year view was better calibrated: the one-year 75th percentile covered `r d$one_year_cov_q75_panel` of actual 2008 CDRs.
+
+**Limitations.** US business in USD at 2007. Net of reinsurance, so there is no gross or reinsurance-held IFRS 17 measurement. The data has no claim counts, ULAE or rate changes, so frequency–severity, Berquist–Sherman and on-levelling are not possible and the BF prior is not on-levelled. The back-test runs only to 120 months, so the tail is untested. One vintage (AY 1998–2007) and small panels (`r d$n_panel_backtest` / `r d$n_panel_stochastic` insurers) mean calibration results are indicative and not extrapolated. The CAS selection of insurers with complete data introduces survivorship bias. IFRS 17 did not exist in 2007, so the LIC is a method demonstration. The one-year measure covers reserve risk only and is not an SCR. The 10% prior CV and 5% ULAE are judgements.

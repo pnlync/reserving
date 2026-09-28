@@ -1,0 +1,27 @@
+---
+title: "Back-test against the 2008–2016 run-off"
+---
+
+```{r}
+source("_setup.R")
+roll <- read.csv(out("backtest_rolling.csv"))
+```
+
+The scoring formulas were fixed in `CONTRACT.md` before the reveal, and the scoring code reads the selection from the git tag.
+
+| Test | Result |
+|---|---|
+| A. Paid to 120 months (headline) | Locked selection `r d$err_paid120_selected` short of actual; pure chain ladder `r d$err_paid120_cl` short |
+| B. 120-month incurred proxy (AY 1999–2007) | Selection `r d$err_inc120_selected` low; chain ladder `r d$err_inc120_cl`; insurer's booked `r d$err_inc120_booked` |
+| C. 2008 actual / expected | `r d$ae_next_2008` |
+| D. Rolling mechanical re-reserve | Deterioration in 2008–2010, small moves after that |
+
+```{r}
+#| layout-ncol: 2
+#| out-width: 100%
+knitr::include_graphics(c(fig("m5_rolling_reserve.png"), fig("m5_panel_errors.png")))
+```
+
+**Across `r d$n_panel_backtest` insurers**, the same automatic rules cut the median absolute Test A error from `r d$med_err_cl_panel` (pure chain ladder) to `r d$med_err_rule_panel`. The gain is uneven, and small insurers are very noisy. Only `r d$share_panel_booked_below_proxy` of insurers had booked 2007 reserves below the 120-month proxy.
+
+**What hindsight would change.** Late development exceeded every method. The pre-lock signals (rising mid-lag factors, pseudo-historical A/E above 1, and upward-developing bookings) moved the selection in the right direction, but not far enough.

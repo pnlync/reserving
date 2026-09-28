@@ -1,0 +1,37 @@
+[
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "Reserving a real insurer blind, then checking the answer",
+    "section": "",
+    "text": "I set reserves for a real US commercial auto insurer using only the Schedule P data visible at the end of 2007. I locked the selection in git before looking at anything later, then scored it against the insurer’s actual payments over 2008–2016 and against what the insurer itself had booked. Reserving is the subject; IFRS 17 and Solvency II are application layers.\n\n\n1. Selected reserve\nUSD 365.4m unpaid at 2007-12-31 (case 117.0m, IBNR 248.4m). That is 44.4% above the insurer’s booked 253.1m. It uses chain ladder for mature years and Benktander (a chain ladder–BF blend) for the two youngest.\n\n\n2. Blind back-test\nProjected payments to 120 months fell 10.3% short of actual (pure chain ladder: 15.6%). Against 120-month incurred, the locked selection was 11.2% low, beating both pure chain ladder (16.6%) and the insurer’s booked estimate (38.6%).\n\n\n3. Uncertainty and calibration\nA custom bootstrap of the selected reserve gives a CV of 6.3%. Rerun across 45 insurers, its 75th percentile covered 66.7% of actual outcomes. The intervals were too narrow; the package ODP and Mack distributions covered only 57.8%.\n\n\n4. One-year risk and IFRS 17 bridge\nThe illustrative net IFRS 17 LIC is USD 375.2m (discounted BE 360.6m plus a 75% confidence-level risk adjustment of 14.7m). A 1-in-200 one-year reserve deterioration is 12.0% of BE, against 27% under the Solvency II standard formula (reserve risk only; not an SCR).\n\n\n\n\n\n\n\nThe locked 2007 selection, the insurer’s booked reserve and pure chain ladder, against the 120-month incurred proxy (AY 1999–2007).\n\n\n\n\nRead the 3-page reserving memo (PDF) · Code on GitHub"
+  },
+  {
+    "objectID": "application.html",
+    "href": "application.html",
+    "title": "Illustrative net IFRS 17 LIC and one-year reserve risk",
+    "section": "",
+    "text": "Item\nUSD m\n\n\n\n\nUndiscounted best estimate (claims + 5% ULAE)\n381.1\n\n\nDiscount effect (GSW US Treasury zero curve, 2007-12-31)\n-20.5\n\n\nDiscounted best estimate\n360.6\n\n\nRisk adjustment (75% confidence level)\n14.7\n\n\nIllustrative net LIC\n375.2\n\n\n\nThe risk adjustment corresponds to a 75% confidence level. At 65%, 85% and 90% it would be 8.2, 23.3 and 28.9. The data are net of reinsurance and IFRS 17 did not exist in 2007, so this is a method demonstration.\n\n\n\n\n\n\n\n\n\nRe-reserving 10,000 simulated 2008 years with the locked rules (“actuary in the box”) gives a 1-in-200 one-year deterioration of 12.0% of opening BE. The Solvency II standard formula gives 27% (3 × 9%, motor vehicle liability) and an illustrative USP gives 16.5%. The insurer’s actual 2008 deterioration sat at the 26.9% point of the simulated distribution. Across the panel, the one-year 75th percentile covered 71.1% of actual outcomes. This covers reserve risk only and is not an SCR."
+  },
+  {
+    "objectID": "uncertainty.html",
+    "href": "uncertainty.html",
+    "title": "Uncertainty and calibration",
+    "section": "",
+    "text": "Unpaid claims distribution at 2007-12-31, USD m.\n\n\n\n\n\n\n\n\n\n\nModel\nMean\nSD\nCV\n75th pct\n99.5th pct\n\n\n\n\nMack paid (tail)\n340.2\n19.2\n5.6%\n–\n–\n\n\nMack incurred (tail; IBNR + case reserves)\n347.4\n18.6\n5.4%\n–\n–\n\n\nPackage ODP bootstrap (pure CL, no tail)\n335.9\n18.5\n5.5%\n348.0\n386.1\n\n\nCustom bootstrap of selected reserve\n363.0\n22.8\n6.3%\n377.9\n426.8\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nCalibration. For each of 45 insurers, the actual 2008–2016 payments (to 120 months) were placed in that insurer’s own predictive distribution. If the distributions were right, the percentiles would be uniform.\n\n\n\n\n\n\n\n\n\n\n\n\n\nModel\nCovered by 75th pct\n50% interval\n90% interval\nKS D\nKS 5% critical\n\n\n\n\nCustom bootstrap (selected rules)\n66.7%\n33.3%\n77.8%\n0.178\n0.203\n\n\nPackage ODP (pure CL)\n57.8%\n35.6%\n80.0%\n0.205\n0.203\n\n\nMack (lognormal)\n57.8%\n37.8%\n82.2%\n0.236\n0.203\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nThe custom bootstrap is centred but too narrow. The package ODP and Mack distributions are biased low, as Meyers (2019) found on the older data. A widening factor fitted on half the insurers (λ = 1.40) and tested on the other half is a sensitivity only; the raw coverage is the result."
+  },
+  {
+    "objectID": "backtest.html",
+    "href": "backtest.html",
+    "title": "Back-test against the 2008–2016 run-off",
+    "section": "",
+    "text": "The scoring formulas were fixed in CONTRACT.md before the reveal, and the scoring code reads the selection from the git tag.\n\n\n\n\n\n\n\nTest\nResult\n\n\n\n\nA. Paid to 120 months (headline)\nLocked selection 10.3% short of actual; pure chain ladder 15.6% short\n\n\nB. 120-month incurred proxy (AY 1999–2007)\nSelection 11.2% low; chain ladder 16.6%; insurer’s booked 38.6%\n\n\nC. 2008 actual / expected\n1.01\n\n\nD. Rolling mechanical re-reserve\nDeterioration in 2008–2010, small moves after that\n\n\n\n\n\n\n\n\n\n\n\n\n\nAcross 47 insurers, the same automatic rules cut the median absolute Test A error from 24.5% (pure chain ladder) to 20.8%. The gain is uneven, and small insurers are very noisy. Only 19.1% of insurers had booked 2007 reserves below the 120-month proxy.\nWhat hindsight would change. Late development exceeded every method. The pre-lock signals (rising mid-lag factors, pseudo-historical A/E above 1, and upward-developing bookings) moved the selection in the right direction, but not far enough."
+  },
+  {
+    "objectID": "selection.html",
+    "href": "selection.html",
+    "title": "Selection at 31 December 2007",
+    "section": "",
+    "text": "Paid is the base triangle, with factors volume-weighted over the latest five diagonals and a log-linear tail of 1.0023. Methods follow a rule on paid percent developed z: chain ladder at 70% or more, Benktander at 30–70%, and BF with a leave-one-out Cape Cod prior below 30%. One documented exception applies: mature years use incurred chain ladder, because a pseudo-historical test at 2004–2006 showed paid chain ladder under-predicting. The rules were committed before any analysis and the selection was locked before the reveal.\n\n\n\nUSD m, net of reinsurance.\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nAY\nNet premium\nPaid\nz\nPaid CL\nIncurred CL\nPaid BF\nBenktander\nMethod\nSelected\nULR\nUnpaid\n\n\n\n\n1998\n245.0\n158.0\n99.8%\n158.4\n158.4\n158.4\n158.4\nCL_INC\n158.4\n64.6%\n0.4\n\n\n1999\n231.5\n158.4\n99.5%\n159.2\n159.1\n159.1\n159.2\nCL_INC\n159.1\n68.7%\n0.7\n\n\n2000\n222.2\n170.7\n98.9%\n172.7\n175.8\n172.4\n172.7\nCL_INC\n175.8\n79.1%\n5.1\n\n\n2001\n233.6\n149.9\n97.9%\n153.1\n152.4\n153.1\n153.1\nCL_INC\n152.4\n65.3%\n2.5\n\n\n2002\n259.3\n173.8\n96.6%\n180.0\n180.3\n179.7\n180.0\nCL_INC\n180.3\n69.5%\n6.5\n\n\n2003\n281.5\n173.3\n93.7%\n185.0\n187.1\n185.1\n185.0\nCL_INC\n187.1\n66.5%\n13.8\n\n\n2004\n301.6\n159.2\n87.3%\n182.3\n182.8\n184.9\n182.6\nCL_INC\n182.8\n60.6%\n23.7\n\n\n2005\n322.8\n167.3\n75.7%\n220.9\n224.6\n219.2\n220.5\nCL_INC\n224.6\n69.6%\n57.3\n\n\n2006\n354.9\n126.1\n58.4%\n216.0\n218.9\n225.1\n219.8\nBK\n219.8\n61.9%\n93.7\n\n\n2007\n370.6\n74.7\n32.8%\n227.6\n227.5\n240.9\n236.5\nBK\n236.5\n63.8%\n161.8"
+  }
+]

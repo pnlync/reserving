@@ -1,0 +1,26 @@
+---
+title: "Illustrative net IFRS 17 LIC and one-year reserve risk"
+---
+
+```{r}
+source("_setup.R")
+lic <- read.csv(out("lic_2007.csv"))
+li <- function(i) lic$value[lic$item == i]
+```
+
+| Item | USD m |
+|---|---:|
+| Undiscounted best estimate (claims + 5% ULAE) | `r mm(li("undiscounted_be"))` |
+| Discount effect (GSW US Treasury zero curve, 2007-12-31) | `r mm(li("discount_effect"))` |
+| Discounted best estimate | `r mm(li("discounted_be"))` |
+| Risk adjustment (75% confidence level) | `r mm(li("ra_75"))` |
+| **Illustrative net LIC** | **`r mm(li("lic"))`** |
+
+The risk adjustment corresponds to a 75% confidence level. At 65%, 85% and 90% it would be `r mm(li("ra_65"))`, `r mm(li("ra_85"))` and `r mm(li("ra_90"))`. The data are net of reinsurance and IFRS 17 did not exist in 2007, so this is a method demonstration.
+
+```{r}
+#| out-width: 75%
+knitr::include_graphics(fig("m8_one_year_distribution.png"))
+```
+
+Re-reserving `r d$n_sims` simulated 2008 years with the locked rules ("actuary in the box") gives a 1-in-200 one-year deterioration of **`r d$l995_over_be`** of opening BE. The Solvency II standard formula gives 27% (3 × 9%, motor vehicle liability) and an illustrative USP gives `r d$usp_factor`. The insurer's actual 2008 deterioration sat at the `r d$main_cdr_2008_percentile` point of the simulated distribution. Across the panel, the one-year 75th percentile covered `r d$one_year_cov_q75_panel` of actual outcomes. This covers reserve risk only and is not an SCR.

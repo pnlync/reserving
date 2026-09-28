@@ -19,5 +19,6 @@ switch(stage,
   backtest = run_backtest(),
   calibration = run_calibration(),
   one_year_backtest = run_one_year_backtest(),
+  cv_numbers = { run_cv_numbers(); write_readme() },
   stop("unknown stage: ", stage)
 )

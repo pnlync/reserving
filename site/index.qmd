@@ -1,0 +1,42 @@
+---
+title: "Reserving a real insurer blind, then checking the answer"
+subtitle: "US commercial auto (NAIC 1767), net of reinsurance, valuation 31 December 2007"
+---
+
+```{r}
+source("_setup.R")
+```
+
+I set reserves for a real US commercial auto insurer using only the Schedule P data visible at the end of 2007. I locked the selection in git before looking at anything later, then scored it against the insurer's actual payments over 2008–2016 and against what the insurer itself had booked. Reserving is the subject; IFRS 17 and Solvency II are application layers.
+
+::: {.grid}
+
+::: {.g-col-12 .g-col-md-6}
+### 1. Selected reserve
+**USD `r d$selected_unpaid`** unpaid at 2007-12-31 (case `r d$selected_case_os`, IBNR `r d$selected_ibnr`). That is **`r d$selected_over_booked` above** the insurer's booked `r d$booked_unpaid`. It uses chain ladder for mature years and Benktander (a chain ladder–BF blend) for the two youngest.
+:::
+
+::: {.g-col-12 .g-col-md-6}
+### 2. Blind back-test
+Projected payments to 120 months fell **`r d$err_paid120_selected` short** of actual (pure chain ladder: `r d$err_paid120_cl`). Against 120-month incurred, the locked selection was `r d$err_inc120_selected` low, beating both pure chain ladder (`r d$err_inc120_cl`) and the insurer's booked estimate (`r d$err_inc120_booked`).
+:::
+
+::: {.g-col-12 .g-col-md-6}
+### 3. Uncertainty and calibration
+A custom bootstrap of the selected reserve gives a CV of `r d$boot_cv`. Rerun across `r d$n_panel_stochastic` insurers, its 75th percentile covered **`r d$cov_q75_panel`** of actual outcomes. The intervals were too narrow; the package ODP and Mack distributions covered only `r d$cov_q75_panel_package_odp`.
+:::
+
+::: {.g-col-12 .g-col-md-6}
+### 4. One-year risk and IFRS 17 bridge
+The illustrative net IFRS 17 LIC is USD `r d$lic` (discounted BE `r d$lic_be` plus a 75% confidence-level risk adjustment of `r d$lic_ra75`). A 1-in-200 one-year reserve deterioration is **`r d$l995_over_be`** of BE, against 27% under the Solvency II standard formula (reserve risk only; not an SCR).
+:::
+
+:::
+
+```{r}
+#| fig-cap: "The locked 2007 selection, the insurer's booked reserve and pure chain ladder, against the 120-month incurred proxy (AY 1999–2007)."
+#| out-width: 75%
+knitr::include_graphics(fig("m5_three_way.png"))
+```
+
+[Read the 3-page reserving memo (PDF)](assets/reserving_memo.pdf) · [Code on GitHub](https://github.com/pnlync/reserving)
