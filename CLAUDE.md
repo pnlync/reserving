@@ -5,7 +5,7 @@ General insurance reserving study (portfolio project 02): a US commercial auto i
 ## Key rules (from SPEC, repeated because they are the ones most easily broken)
 - One module at a time (M0 → M9). Before coding a module, explain it in Chinese (max 300 words) and wait for the owner's OK. Write the acceptance tests first. Stop after the teach-back and do not start the next module until the owner replies "continue".
 - Hindsight firewall (§5): only `R/01_load.R` reads `data/raw/`, only `R/reveal.R` reads `data/holdout/`, and `reveal()` errors unless the git tag `selection-locked` exists. Never read, print or summarise lower-triangle (cy ≥ 2008) values before the tag, including in ad-hoc exploration.
-- The tag `selection-locked` is the only irreversible step. Never create it yourself; the owner tags after passing Gate 3. After the tag, only pure code bugs may be fixed (publish both numbers in `reports/post_lock_changes.md`). Judgement choices never change.
+- The tag `selection-locked` (owner-created on 2026-09-28, on commit b037a50) is the only irreversible step: never move, delete or recreate it. Post-lock, only pure code bugs may be fixed (both numbers published in `reports/post_lock_changes.md`). After the tag, only pure code bugs may be fixed (publish both numbers in `reports/post_lock_changes.md`). Judgement choices never change.
 - Never edit the golden values in SPEC §11 or the tests that check them. A failing golden test means the implementation is wrong.
 - No insurer names in any output (NAIC codes only). Never write "IFRS 17 compliant", "SCR" (as a claim about our number), or "validated model".
 - Every public number comes from `outputs/` (ultimately `outputs/cv_numbers.json`); no hand-typed numbers in the README, memo or CV.
@@ -21,4 +21,7 @@ General insurance reserving study (portfolio project 02): a US commercial auto i
 - GitHub: git@github.com:pnlync/reserving.git (SPEC §10 calls the repo `gi-reserving`; the directory layout inside is as in §10).
 
 ## Decision authority
-The owner has given the agent full discretion over design decisions (28 Sep 2026). Make the call, record it in SPEC.md (§14 change log) or the relevant report, and tell the owner what was decided and why. Still: never alter golden values in SPEC §11, and never create the `selection-locked` tag (the owner chose to tag after reviewing the M4 selection).
+The owner has given the agent full discretion over design decisions (28 Sep 2026). Make the call, record it in SPEC.md (§14 change log) or the relevant report, and tell the owner what was decided and why. Still: never alter golden values in SPEC §11. The agent's tool permissions block creating or pushing tags, so tag operations are left to the owner.
+
+## Build
+- `make all` rebuilds raw CSV → outputs → `outputs/cv_numbers.json` → README, memo PDF (`reports/`, Quarto + Typst) and site (`docs/`, served by GitHub Pages from main /docs), then runs the tests (~5 min). `make prelock` runs only the pre-reveal stages.
