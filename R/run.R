@@ -8,5 +8,6 @@ local({
 stage <- commandArgs(TRUE)[1]
 switch(stage,
   load = print(load_raw()),
+  checks = run_checks(),
   stop("unknown stage: ", stage)
 )

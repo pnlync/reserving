@@ -1,6 +1,6 @@
 # SPEC: General Insurance Reserving & Reserve Risk Model
 
-Version 1.1 (2026-09-28). Change log in §14.
+Version 1.2 (2026-09-28). Change log in §14.
 
 A reserving study of a real US commercial auto insurer at 31 December 2007, built from NAIC Schedule P data (CAS Loss Reserving Database). The selection is made and locked using only data visible at year-end 2007. The 2008–2016 run-off is then revealed and used to score it. On top of the locked selection the project quantifies uncertainty, tests calibration across many insurers, derives an illustrative net IFRS 17 LIC and a one-year reserve deterioration measure.
 
@@ -372,3 +372,4 @@ US business in USD at 2007; net of reinsurance (no gross or reinsurance-held IFR
 ## 14. Change log
 
 - **v1.1 (2026-09-28, M0).** (a) The December 2025 CAS file uses different column names from §4.1: `IncurredLosses` (was `IncurLoss_C`), `CumPaidLoss`, `BulkLoss`, `EarnedPremDIR`, `EarnedPremCeded`, `EarnedPremNet` (no `_C` suffix), plus `Single` and `PostedReserves2007`. The CAS definitions are unchanged ("incurred losses and allocated expenses reported at year end", etc.), so the mapping is one-to-one and `01_load.R` renames them to the §4.1 names. (b) The file has 157 insurers; 137 have all 100 cells and 20 are missing whole accident years (contrary to §5.9). M1 drops the 20 because their upper triangles are incomplete, so no lower-triangle value is read. (c) CRAN's current ChainLadder is 0.2.21, not 0.2.22; pinned in `renv.lock`. (d) Raw and market data are not committed (third-party files); `data/raw/MANIFEST` holds SHA-256 hashes and `make all` verifies them. (e) The pipeline driver is `R/run.R` (called by the Makefile); module code stays in the §10 files.
+- **v1.2 (2026-09-28, M1, before any estimation).** The §6 panel rules gave only 17 insurers in `panel_backtest` and 10 in `panel_stochastic` (the placeholders [140]/[112] in the guide assumed a larger usable file). Most insurers are small: the median of each insurer's smallest AY net premium is about 570 (USD thousands), and many have zero payments at late lags. Changes, decided on upper-triangle counts only: the 5,000 floor applies to the main insurer only; panels require `prem_net > 0` for every AY (M5 reports error by size tercile); `panel_stochastic` drops "every development column sum of incremental paid > 0" (zero-mean cells get no process noise under §7.2). Main (1767) and backup (2135) are unchanged. With samples of this size, calibration results are indicative; say so in the memo.

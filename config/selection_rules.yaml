@@ -11,14 +11,17 @@ main:
   max_ceded_share: 0.50             # prem_ceded / prem_dir <= 50% for every AY
   choice: "largest prem_net for AY 2007 = main; second largest = backup"
 
+# v1.2 (2026-09-28, before any estimation; upper-triangle counts only): the v1.0 panels had 17 / 10
+# insurers, so the 5,000 floor applies to the main insurer only and the column-sum rule is dropped.
 panel_backtest:
-  rule: "all 'main' rules except 'choice'"
+  rule: "all 'main' rules except 'choice', with the premium floor replaced by min_prem_net below"
+  min_prem_net: 0                   # prem_net > 0 for every AY (strictly positive)
   use: "deterministic back-test (M5)"
 
 panel_stochastic:
   rule: "panel_backtest plus the conditions below"
   max_negative_incremental_paid: 2  # upper incremental paid < 0 in at most 2 cells
-  column_sums_positive: true        # every development column sum of upper incremental paid > 0
+  column_sums_positive: false       # v1.0 required every column sum of incremental paid > 0; dropped in v1.2
   lag1_paid_positive: true          # paid at lag 1 > 0 for every AY
   bootstrap_runs: "custom bootstrap runs without error and its Pearson scale is finite (checked in M6)"
   use: "calibration (M6, M8)"
