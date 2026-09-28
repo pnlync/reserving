@@ -10,5 +10,7 @@ switch(stage,
   load = print(load_raw()),
   checks = run_checks(),
   diagnostics = run_diagnostics(),
+  deterministic = run_deterministic(),
+  excel = excel_check(),
   stop("unknown stage: ", stage)
 )

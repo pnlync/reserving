@@ -9,8 +9,9 @@ ldf:
   weighting: volume
   exclusions: []                    # M2 §3: keep all factors
 tail:
-  method: null                      # M3
-  value: null
+  method: loglinear_mack            # M3: log-linear on (f - 1), MackChainLadder(tail = TRUE); 1.00234
+  value: 1.0023                     # cross-checks: case_inc/paid AY 1998 at lag 10 = 1.00228; insurer's booked/paid 1.0029
+  incurred: "paid tail x paid/case_inc of AY 1998 at lag 10 (consistent ultimate for the oldest AY)"
   sensitivity_multipliers: [0.5, 1.5]   # applied to (tail - 1)
 selection_thresholds:               # on paid percent developed z = 1/CDF (tail included)
   cl_min_z: 0.70                    # z >= 70%: paid chain ladder
