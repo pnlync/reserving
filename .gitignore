@@ -1,0 +1,28 @@
+# Private planning notes (Claude / ChatGPT guides, CV and interview prep) — never publish
+private_notes/
+
+# IDE / OS / local agent tooling
+.claude/
+.idea/
+.vscode/
+.DS_Store
+
+# R
+.Rproj.user/
+.Rhistory
+.RData
+.Ruserdata
+*.Rproj
+renv/library/
+renv/staging/
+renv/local/
+renv/python/
+
+# Quarto
+/.quarto/
+site/_site/
+reports/*_files/
+
+# Excel / LibreOffice lock files
+~$*.xlsx
+.~lock.*#
