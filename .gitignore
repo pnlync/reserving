@@ -37,3 +37,7 @@ data/upper/*
 !data/upper/.gitkeep
 data/holdout/*
 !data/holdout/.gitkeep
+
+# Rendered memo intermediates (the PDF itself is committed)
+reports/memo_figures/
+reports/*.typ

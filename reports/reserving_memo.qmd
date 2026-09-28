@@ -1,0 +1,93 @@
+---
+title: "Reserve review: US commercial auto (NAIC 1767) as at 31 December 2007"
+subtitle: "Illustrative reserving study on NAIC Schedule P data"
+format:
+  typst:
+    papersize: a4
+    margin:
+      x: 2cm
+      y: 1.6cm
+    fontsize: 10pt
+execute:
+  echo: false
+  warning: false
+---
+
+```{r}
+#| include: false
+root <- normalizePath("..")
+out <- function(f) file.path(root, "outputs", f)
+sel <- read.csv(out("selection_2007.csv"), stringsAsFactors = FALSE)
+cmp <- read.csv(out("m4_prelock_comparison.csv"))
+v <- function(item) cmp$value[cmp$item == item]
+ph <- read.csv(out("m4_pseudo_historical.csv"))
+bd <- read.csv(out("m4_booked_development.csv"))
+m2 <- read.csv(out("m2_tests.csv"))
+mth <- read.csv(out("methods_2007.csv"))
+tri <- readRDS(file.path(root, "data", "upper", "triangles_main_backup.rds"))[["1767"]]
+f34 <- tri$paid[, 4] / tri$paid[, 3]
+f2 <- function(x) formatC(x, format = "f", digits = 2)
+money <- function(x) formatC(x, format = "f", digits = 1, big.mark = ",")
+mm <- function(x) formatC(x / 1000, format = "f", digits = 1)   # USD thousands -> USD millions
+pct <- function(x, d = 1) paste0(formatC(100 * x, format = "f", digits = d), "%")
+ae <- aggregate(cbind(expected, actual) ~ valuation + variant, ph, sum)
+ae$ae <- ae$actual / ae$expected
+aev <- function(val, var) ae$ae[ae$valuation == val & ae$variant == var]
+```
+
+*Data: CAS Loss Reserving Database (NAIC Schedule P), compiled by S&P Global Market Intelligence for the Casualty Actuarial Society. Net of reinsurance, US business. The IFRS 17 and Solvency II figures are illustrative methodology demonstrations, not accounting or regulatory numbers for any company. Insurers are identified by NAIC code only. Amounts in USD millions unless stated.*
+
+## 1. Executive reserve review
+
+**Selected unpaid claims at 31 December 2007 are USD `r mm(v("selected_unpaid"))`m, net of reinsurance, for accident years 1998–2007. This is USD `r mm(v("selected_minus_booked"))`m (`r pct(v("selected_over_booked_pct"), 0)`) above the insurer's own booked unpaid of USD `r mm(v("booked_unpaid"))`m.** The estimate covers commercial auto losses including defence and cost containment (DCC), undiscounted and excluding ULAE. It was locked in git (tag `selection-locked`) before any later development was looked at.
+
+| | USD m |
+|---|---:|
+| Selected ultimate, AY 1998–2007 | `r mm(v("selected_ultimate"))` |
+| Paid to date | `r mm(sum(sel$paid))` |
+| **Selected unpaid** | **`r mm(v("selected_unpaid"))`** |
+| of which case reserves | `r mm(v("selected_case_os"))` |
+| of which IBNR (incl. IBNER) | `r mm(v("selected_ibnr"))` |
+| Insurer's booked unpaid (case + bulk/IBNR) | `r mm(v("booked_unpaid"))` |
+| Range across methods (paid CL to incurred BF) | `r mm(v("method_range_min"))` – `r mm(v("method_range_max"))` |
+
+**Main drivers.**
+
+- AY 2006–2007 account for USD `r mm(sum(sel$unpaid[sel$ay >= 2006]))`m (`r pct(sum(sel$unpaid[sel$ay >= 2006]) / v("selected_unpaid"), 0)`) of the unpaid. They are `r pct(sel$pct_dev[sel$ay == 2006], 0)` and `r pct(sel$pct_dev[sel$ay == 2007], 0)` paid-developed, and are selected with Benktander at loss ratios of `r pct(sel$ulr_sel[sel$ay == 2006])` and `r pct(sel$ulr_sel[sel$ay == 2007])`.
+- The insurer books AY 2007 at a `r pct(bd$booked_latest[bd$ay == 2007] / sel$prem_net[sel$ay == 2007])` loss ratio and AY 2006 at `r pct(bd$booked_latest[bd$ay == 2006] / sel$prem_net[sel$ay == 2006])`. That implies much faster payment than its own history supports: paid chain ladder gives `r pct(sel$ult_cl_paid[sel$ay == 2007] / sel$prem_net[sel$ay == 2007])` for AY 2007.
+- The insurer's own first bookings have always developed upwards: every AY 1998–2006 booked ultimate has risen since its first valuation, by `r pct(min(bd$change[bd$ay <= 2006]), 0)` to `r pct(max(bd$change[bd$ay <= 2006]), 0)`. This pre-lock evidence supports holding more than the booked figure.
+- The tail beyond 120 months is `r formatC(v("tail"), format = "f", digits = 4)` (log-linear extrapolation). It is immaterial, at under 0.3% of ultimate.
+
+## 2. Evidence and uncertainty
+
+**Data and diagnostics.** The paid and case-incurred triangles are complete and clean: no negative paid increments and no negative case reserves. The paid ÷ incurred ratio is stable by accident year, so neither faster settlement nor a change in case-reserve strength is evident. Mid-lag paid factors have risen for recent accident years (the 3–4 factor averages `r f2(mean(f34[as.character(1998:2001)]))` for AY 1998–2001 and `r f2(min(f34[as.character(2002:2004)]))`–`r f2(max(f34[as.character(2002:2004)]))` for AY 2002–2004), and incurred factors show the same rise. `cyEffTest` does not reject (paid Z = `r m2$statistic[1]`), while `dfCorTest` rejects independence for paid, so Mack standard errors are treated as a benchmark only. Factors are volume-weighted over the latest five diagonals.
+
+**Pseudo-historical check (pre-lock).** The rules were rerun at 2004, 2005 and 2006 and compared with paid diagonals up to 2007. Paid chain ladder under-predicted payments every time (A/E `r formatC(aev(2004, "cl_latest5"), digits = 2, format = "f")`, `r formatC(aev(2005, "cl_latest5"), digits = 2, format = "f")`, `r formatC(aev(2006, "cl_latest5"), digits = 2, format = "f")`). The default rule did better (`r formatC(aev(2004, "rule_latest5"), digits = 2, format = "f")`, `r formatC(aev(2005, "rule_latest5"), digits = 2, format = "f")`, `r formatC(aev(2006, "rule_latest5"), digits = 2, format = "f")`). Using incurred chain ladder for mature years brought the A/E closer to 1 (`outputs/m4_pseudo_historical_by_ay.csv`). The latest-5 and all-year windows gave the same A/E to within `r pct(max(abs(ae$ae[ae$variant == "rule_latest5"] - ae$ae[ae$variant == "rule_all"])))`.
+
+**Selection by accident year.** Default rule on paid percent developed z: chain ladder at z ≥ 70%, Benktander at 30–70%, and BF below 30%. BF uses a leave-one-out Cape Cod prior, `r pct(min(mth$elr_loo))`–`r pct(max(mth$elr_loo))`. One documented exception applies: for mature years (AY 1998–2005, z ≥ 70%), incurred chain ladder replaces paid chain ladder, based on the pseudo-historical evidence above. No accident year shows a paid vs incurred chain ladder gap above 10%. The prior is more than 10 points above the peer median loss ratio for recent years, but the peer panel is mostly small insurers with a different mix, so the prior was kept and its ±5-point sensitivity is part of the uncertainty analysis.
+
+```{r}
+#| label: tbl-selection
+#| tbl-cap: "Ultimates by method and selection, USD m (z = paid percent developed; CL_INC = incurred chain ladder; BK = Benktander)."
+tab <- data.frame(
+  AY = sel$ay, `Prem` = mm(sel$prem_net), `Paid` = mm(sel$paid), `z` = pct(sel$pct_dev, 0),
+  `Paid CL` = mm(sel$ult_cl_paid), `Inc CL` = mm(sel$ult_cl_inc), `Paid BF` = mm(sel$ult_bf_paid),
+  `Benkt.` = mm(sel$ult_bk), Method = sel$method, `Selected` = mm(sel$ult_sel), `ULR` = pct(sel$ulr_sel),
+  `Unpaid` = mm(sel$unpaid), check.names = FALSE)
+knitr::kable(tab, align = "r")
+```
+
+```{r}
+#| fig-cap: "Selected vs method ultimates and the insurer's booked ultimate (loss ratio). US commercial auto, net, NAIC Schedule P, as at 2007-12-31."
+#| out-width: 85%
+# Typst reads files only below the document folder, so the figure is copied next to the memo.
+dir.create("memo_figures", showWarnings = FALSE)
+invisible(file.copy(out("figures/m4_selection_vs_methods.png"), "memo_figures/", overwrite = TRUE))
+knitr::include_graphics("memo_figures/m4_selection_vs_methods.png")
+```
+
+**Uncertainty.** *To be completed after the lock with the frozen stochastic specification (M6): Mack and ODP bootstrap standard errors, the custom bootstrap of the selected reserve, and sensitivities (ELR ±5 points, tail, window, incurred vs paid, calendar-year inflation, thresholds).*
+
+## 3. Validation and limitations (post-reveal addendum)
+
+*Written after the reveal (M5).*

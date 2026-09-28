@@ -1,8 +1,8 @@
 # make all: raw CSV -> outputs (pre-lock stages; post-lock stages are added after the tag).
 R := Rscript
 
-.PHONY: all load checks diagnostics deterministic select excel test
-all: load checks diagnostics deterministic select excel test
+.PHONY: all load checks diagnostics deterministic select excel memo test
+all: load checks diagnostics deterministic select excel memo test
 
 load:
 	$(R) R/run.R load
@@ -18,3 +18,6 @@ excel:
 	$(R) R/run.R excel
 test:
 	$(R) -e 'testthat::test_dir("tests/testthat", reporter = "summary", stop_on_failure = TRUE)'
+
+memo:
+	cd reports && RENV_PROJECT=$(CURDIR) quarto render reserving_memo.qmd

@@ -1,0 +1,31 @@
+# Stochastic specification (SPEC §7.2). Frozen at the lock together with the selection.
+replicates:
+  main: 10000
+  panel_insurer: 2000
+  one_year_rereserve: 10000
+residuals:
+  fitted_means: "chain ladder back-fitted ODP means m (all-year volume-weighted factors, latest diagonal fixed)"
+  type: "unscaled Pearson r = (X - m) / sqrt(|m|)"
+  dof_adjustment: "sqrt(n / (n - p)), n = number of upper incremental cells, p = 2 * (number of AYs) - 1"
+  exclude: "corner cells with zero residual (AY 1998 lag 10 and AY 2007 lag 1) and cells with m = 0"
+resampling: "with replacement from all non-excluded adjusted residuals"
+process_distribution:
+  family: gamma
+  mean: m
+  variance: "phi * m, phi = Pearson scale = sum(r^2) / (n - p)"
+  nonpositive_mean: "use m with no noise; record the count"
+prior_uncertainty:
+  elr_multiplier: lognormal
+  mean: 1
+  cv: 0.10
+method_table:
+  main: "locked `method` column of outputs/selection_2007.csv"
+  panel: "automatic thresholds (no manual exceptions)"
+pseudo_data_rules: "on each pseudo-triangle: LDFs with the locked window, tail by the locked method, leave-one-out Cape Cod prior x prior noise, then the method table"
+outputs: "future payments by calendar year, to lag 10 and with tail (outputs/sims_main.rds)"
+calibration:
+  headline: "one-sided coverage of the 75th percentile of future payments to lag 10"
+  two_sided: [0.50, 0.75, 0.90, 0.95]
+  ks_critical: "1.36 / sqrt(n)"
+  ties: "mid-rank"
+widening_sensitivity: "factor lambda on log deviations from the median, fitted on a random half of panel_stochastic (seed widening_split) and tested on the other half; sensitivity only"

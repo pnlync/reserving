@@ -12,5 +12,6 @@ switch(stage,
   diagnostics = run_diagnostics(),
   deterministic = run_deterministic(),
   excel = excel_check(),
+  select = run_select(),
   stop("unknown stage: ", stage)
 )
