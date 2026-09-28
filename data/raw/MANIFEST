@@ -1,0 +1,9 @@
+file: comauto_pos_98-07.csv
+source: https://www.casact.org/publications-research/research/research-resources/loss-reserving-data-pulled-naic-schedule-p (December 2025 version)
+downloaded: 2026-09-28
+sha256: 5012bd4c9048e300669e2f4fc915850449099e159481b4c3349b574f6f00afe1
+
+file: ../market/feds200628.csv
+source: https://www.federalreserve.gov/data/nominal-yield-curve.htm
+downloaded: 2026-09-28
+sha256: cf983506e624fe5ccac7038f88ace4c5fc49e1fcd67acf6ca128aa08f57ebc01

@@ -26,3 +26,14 @@ reports/*_files/
 # Excel / LibreOffice lock files
 ~$*.xlsx
 .~lock.*#
+
+# Data: third-party downloads are not committed (fetch per data/raw/README.md; hashes in data/raw/MANIFEST)
+data/raw/*
+!data/raw/README.md
+!data/raw/MANIFEST
+data/market/*
+!data/market/.gitkeep
+data/upper/*
+!data/upper/.gitkeep
+data/holdout/*
+!data/holdout/.gitkeep

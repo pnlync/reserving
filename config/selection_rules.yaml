@@ -1,0 +1,24 @@
+# Company selection rules (SPEC §6). Committed before any analysis code; frozen.
+# Every rule reads the upper triangle only (cy <= 2007). Amounts in USD thousands.
+# Owner confirmed the SPEC defaults on 2026-09-28.
+
+main:
+  upper_cells_required: 55          # all 55 upper cells (AY 1998-2007, cy <= 2007) present
+  min_prem_net: 5000                # prem_net > 0 and >= 5,000 for every AY
+  max_prem_change: 0.50             # |prem_net[ay] / prem_net[ay-1] - 1| <= 50% for adjacent AYs
+  max_paid_decreases: 2             # cumulative paid decreases (lag to lag) in at most 2 upper cells
+  max_negative_case_os: 2           # case_inc - paid < 0 in at most 2 upper cells
+  max_ceded_share: 0.50             # prem_ceded / prem_dir <= 50% for every AY
+  choice: "largest prem_net for AY 2007 = main; second largest = backup"
+
+panel_backtest:
+  rule: "all 'main' rules except 'choice'"
+  use: "deterministic back-test (M5)"
+
+panel_stochastic:
+  rule: "panel_backtest plus the conditions below"
+  max_negative_incremental_paid: 2  # upper incremental paid < 0 in at most 2 cells
+  column_sums_positive: true        # every development column sum of upper incremental paid > 0
+  lag1_paid_positive: true          # paid at lag 1 > 0 for every AY
+  bootstrap_runs: "custom bootstrap runs without error and its Pearson scale is finite (checked in M6)"
+  use: "calibration (M6, M8)"

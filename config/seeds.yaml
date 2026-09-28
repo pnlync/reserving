@@ -1,0 +1,6 @@
+# Random seeds (SPEC §4.3). Every simulation records its seed and the git hash of stochastic_spec.yaml.
+main_bootstrap: 20071231
+package_bootstrap: 20071232
+panel_bootstrap: 20071233      # insurer k uses panel_bootstrap + k (k = row in panel list)
+one_year_rereserve: 20071234
+widening_split: 20071235

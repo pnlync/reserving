@@ -19,3 +19,6 @@ General insurance reserving study (portfolio project 02): a US commercial auto i
 ## Environment
 - R 4.5 via renv (set up in M0); tests with testthat. Excel check recalculated with LibreOffice headless (M3); reports and site with Quarto (M9).
 - GitHub: git@github.com:pnlync/reserving.git (SPEC §10 calls the repo `gi-reserving`; the directory layout inside is as in §10).
+
+## Decision authority
+The owner has given the agent full discretion over design decisions (28 Sep 2026). Make the call, record it in SPEC.md (§14 change log) or the relevant report, and tell the owner what was decided and why. Still: never alter golden values in SPEC §11, and never create the `selection-locked` tag (the owner chose to tag after reviewing the M4 selection).

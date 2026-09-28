@@ -1,5 +1,7 @@
 # SPEC: General Insurance Reserving & Reserve Risk Model
 
+Version 1.1 (2026-09-28). Change log in §14.
+
 A reserving study of a real US commercial auto insurer at 31 December 2007, built from NAIC Schedule P data (CAS Loss Reserving Database). The selection is made and locked using only data visible at year-end 2007. The 2008–2016 run-off is then revealed and used to score it. On top of the locked selection the project quantifies uncertainty, tests calibration across many insurers, derives an illustrative net IFRS 17 LIC and a one-year reserve deterioration measure.
 
 This file is the contract for the coding agent. The companion guide (Chinese, "GI Reserving Project Guide") explains every concept and gives a worked toy example. If this file is unclear, contradicts itself or looks wrong, stop and ask. Do not guess. `CONTRACT.md` (written in M0) is the short, frozen version of the rules in sections 4 and 5.
@@ -366,3 +368,7 @@ Expected (tolerance 0.01): f = 2.19403, 1.44086, 1.25; CDF 12 m = 3.95161; z = 2
 ## 13. Limitations to state
 
 US business in USD at 2007; net of reinsurance (no gross or reinsurance-held IFRS 17 measurement); no claim counts, ULAE or rate changes; back-test only to 120 months, so the tail is untested; one vintage (AY 1998–2007), results not extrapolated; survivorship bias from the CAS selection of insurers with complete data; IFRS 17 did not exist in 2007 (method demonstration); one-year measure covers reserve risk only and is not an SCR; ELR prior CV of 10% and ULAE 5% are judgements.
+
+## 14. Change log
+
+- **v1.1 (2026-09-28, M0).** (a) The December 2025 CAS file uses different column names from §4.1: `IncurredLosses` (was `IncurLoss_C`), `CumPaidLoss`, `BulkLoss`, `EarnedPremDIR`, `EarnedPremCeded`, `EarnedPremNet` (no `_C` suffix), plus `Single` and `PostedReserves2007`. The CAS definitions are unchanged ("incurred losses and allocated expenses reported at year end", etc.), so the mapping is one-to-one and `01_load.R` renames them to the §4.1 names. (b) The file has 157 insurers; 137 have all 100 cells and 20 are missing whole accident years (contrary to §5.9). M1 drops the 20 because their upper triangles are incomplete, so no lower-triangle value is read. (c) CRAN's current ChainLadder is 0.2.21, not 0.2.22; pinned in `renv.lock`. (d) Raw and market data are not committed (third-party files); `data/raw/MANIFEST` holds SHA-256 hashes and `make all` verifies them. (e) The pipeline driver is `R/run.R` (called by the Makefile); module code stays in the §10 files.
