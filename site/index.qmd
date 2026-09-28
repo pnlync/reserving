@@ -13,7 +13,7 @@ I set reserves for a real US commercial auto insurer using only the Schedule P d
 
 ::: {.g-col-12 .g-col-md-6}
 ### 1. Selected reserve
-**USD `r d$selected_unpaid`** unpaid at 2007-12-31 (case `r d$selected_case_os`, IBNR `r d$selected_ibnr`). That is **`r d$selected_over_booked` above** the insurer's booked `r d$booked_unpaid`. It uses chain ladder for mature years and Benktander (a chain ladder–BF blend) for the two youngest.
+**USD `r d$selected_unpaid`** unpaid at 2007-12-31 (case `r d$selected_case_os`, IBNR `r d$selected_ibnr`). That is **`r d$selected_over_booked` above** the insurer's booked `r d$booked_unpaid`. It uses incurred chain ladder for mature years and Benktander (a chain ladder–BF blend) for the two youngest.
 :::
 
 ::: {.g-col-12 .g-col-md-6}

@@ -16,7 +16,7 @@ li <- function(i) lic$value[lic$item == i]
 | Risk adjustment (75% confidence level) | `r mm(li("ra_75"))` |
 | **Illustrative net LIC** | **`r mm(li("lic"))`** |
 
-The risk adjustment corresponds to a 75% confidence level. At 65%, 85% and 90% it would be `r mm(li("ra_65"))`, `r mm(li("ra_85"))` and `r mm(li("ra_90"))`. The data are net of reinsurance and IFRS 17 did not exist in 2007, so this is a method demonstration.
+The risk adjustment corresponds to a 75% confidence level. At 65%, 85% and 90% it would be USD `r mm(li("ra_65"))`m, `r mm(li("ra_85"))`m and `r mm(li("ra_90"))`m. The data are net of reinsurance and IFRS 17 did not exist in 2007, so this is a method demonstration.
 
 ```{r}
 #| out-width: 75%

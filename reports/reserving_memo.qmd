@@ -120,7 +120,7 @@ Mack splits the paid SE into process `r mm(mk$process_se[mk$basis == "paid" & is
 
 ## 3. Validation and limitations (post-reveal addendum)
 
-*Written after the 2008–2016 run-off was revealed. Pages 1–2 above were fixed before the reveal and are unchanged.*
+*Written after the 2008–2016 run-off was revealed. Page 1 and the first half of page 2 were fixed before the reveal and are unchanged; the uncertainty, LIC and one-year figures on page 2 were computed before the reveal.*
 
 **Blind back-test.** Scored with the formulas fixed in `CONTRACT.md`, reading the selection from the tag:
 
