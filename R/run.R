@@ -13,5 +13,8 @@ switch(stage,
   deterministic = run_deterministic(),
   excel = excel_check(),
   select = run_select(),
+  uncertainty = run_uncertainty_main(),
+  lic = run_lic(),
+  one_year = run_one_year(),
   stop("unknown stage: ", stage)
 )

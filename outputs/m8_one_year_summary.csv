@@ -1,0 +1,16 @@
+"item","value"
+"mw_cdr_se",14400.1123204979
+"mw_mack_se",18991.5947927936
+"mw_reserve",335902.890129734
+"boot_cdr_se_package",14482.9159859765
+"sim_cdr_mean",-315.091994969934
+"sim_cdr_sd",16165.0205862827
+"sim_L995_undiscounted",44237.6874754785
+"sim_L995_over_selected_unpaid",0.121070046611883
+"l995_over_be",0.120191407856682
+"be_2007_discounted",360568.348238664
+"open_pv_selected",363026.325775093
+"sf_reserve_risk_factor",0.27
+"usp_sigma",0.0551237017908743
+"usp_factor",0.165371105372623
+"ultimate_sd_selected",22827.347307045

@@ -24,10 +24,10 @@ bf_ultimate <- function(c_latest, prem, z, elr) c_latest + elr * prem * (1 - z)
 benktander_ultimate <- function(c_latest, z, u_bf) c_latest + (1 - z) * u_bf
 
 # All methods for one insurer, given paid/incurred triangles, premium and factors.
-methods_table <- function(paid, inc, prem, f_paid, f_inc, tail_paid = 1, tail_inc = 1) {
+methods_table <- function(paid, inc, prem, f_paid, f_inc, tail_paid = 1, tail_inc = 1, elr_shift = 0) {
   cp <- chain_ladder(paid, f_paid, tail_paid)
   ci <- chain_ladder(inc, f_inc, tail_inc)
-  elr_loo <- loo_elr(cp$latest, prem, cp$z)
+  elr_loo <- loo_elr(cp$latest, prem, cp$z) + elr_shift
   elr_cc <- cape_cod_elr(cp$latest, prem, cp$z)
   ult_bf_paid <- bf_ultimate(cp$latest, prem, cp$z, elr_loo)
   data.frame(
@@ -38,7 +38,8 @@ methods_table <- function(paid, inc, prem, f_paid, f_inc, tail_paid = 1, tail_in
     ult_bf_paid = ult_bf_paid,
     ult_bf_inc = bf_ultimate(ci$latest, prem, ci$z, elr_loo),
     ult_cc = bf_ultimate(cp$latest, prem, cp$z, elr_cc),
-    ult_bk = benktander_ultimate(cp$latest, cp$z, ult_bf_paid)
+    ult_bk = benktander_ultimate(cp$latest, cp$z, ult_bf_paid),
+    ult_bk_inc = benktander_ultimate(ci$latest, ci$z, bf_ultimate(ci$latest, prem, ci$z, elr_loo))
   )
 }
 
@@ -158,6 +159,7 @@ build_excel_check <- function(tr, a) {
   for (c in c(2, 6, 9, 11, 12)) fml(sprintf("SUM(%s%d:%s%d)", col(c), m0, col(c), tot - 1), tot, c)
   put("ELR_CapeCod", 32, 1)
   fml(sprintf("SUM(B%d:B%d)/SUMPRODUCT(G%d:G%d,E%d:E%d)", m0, tot - 1, m0, tot - 1, m0, tot - 1), 32, 2)
+  add_mack_sheet(wb, tr)
   f <- path_in("excel", "reserving_check.xlsx")
   openxlsx::saveWorkbook(wb, f, overwrite = TRUE)
   f
@@ -173,8 +175,11 @@ excel_check <- function() {
   dir.create(out)
   soffice <- Sys.which("soffice")
   if (soffice == "") stop("LibreOffice (soffice) not found")
-  system2(soffice, c("--headless", "--convert-to", "csv", "--outdir", out, f), stdout = FALSE, stderr = FALSE)
-  x <- utils::read.csv(file.path(out, "reserving_check.csv"), header = FALSE, stringsAsFactors = FALSE)
+  # Filter token 12 = -1 exports every sheet to <file>-<sheet>.csv with formulas evaluated.
+  filt <- "csv:Text - txt - csv (StarCalc):44,34,76,1,,0,false,true,false,false,false,-1"
+  system2(soffice, c("--headless", "--convert-to", shQuote(filt), "--outdir", out, f), stdout = FALSE, stderr = FALSE)
+  x <- utils::read.csv(file.path(out, "reserving_check-check.csv"), header = FALSE, stringsAsFactors = FALSE)
+  xm <- utils::read.csv(file.path(out, "reserving_check-mack.csv"), header = FALSE, stringsAsFactors = FALSE)
   num <- function(r, c) as.numeric(x[r, c])
   mt <- deterministic_methods(up, a$main_insurer, a)
   mt <- mt[order(mt$ay), ]
@@ -188,7 +193,9 @@ excel_check <- function() {
     data.frame(item = paste0("BF ", mt$ay), excel = num(rows, 9), r = mt$ult_bf_paid),
     data.frame(item = paste0("CC ", mt$ay), excel = num(rows, 11), r = mt$ult_cc),
     data.frame(item = paste0("BK ", mt$ay), excel = num(rows, 12), r = mt$ult_bk),
-    data.frame(item = "ELR Cape Cod", excel = num(32, 2), r = mt$elr_cc[1])
+    data.frame(item = "ELR Cape Cod", excel = num(32, 2), r = mt$elr_cc[1]),
+    data.frame(item = "Mack total SE (paid, no tail)", excel = as.numeric(xm[31, 2]),
+               r = suppressMessages(ChainLadder::MackChainLadder(ChainLadder::as.triangle(tr$paid), est.sigma = "Mack"))$Total.Mack.S.E)
   )
   chk$rel_diff <- chk$excel / chk$r - 1
   utils::write.csv(chk, path_in("outputs", "m3_excel_check.csv"), row.names = FALSE)

@@ -42,7 +42,7 @@ auto_method <- function(z, a) {
 
 method_ultimate <- function(mt, method) {
   col <- c(CL = "ult_cl_paid", BK = "ult_bk", BF = "ult_bf_paid", CL_INC = "ult_cl_inc",
-           BF_INC = "ult_bf_inc", CC = "ult_cc")[method]
+           BF_INC = "ult_bf_inc", BK_INC = "ult_bk_inc", CC = "ult_cc")[method]
   if (any(is.na(col))) stop("unknown method: ", paste(method[is.na(col)], collapse = ", "))
   vapply(seq_along(method), function(i) mt[[col[i]]][i], numeric(1))
 }
@@ -50,16 +50,19 @@ method_ultimate <- function(mt, method) {
 # The locked rules at any valuation. `methods` overrides the automatic choice
 # (named by AY); `pure_cl = TRUE` gives the pure paid chain ladder benchmark.
 auto_reserve <- function(x, code, a = read_config("assumptions_2007"), window = a$ldf$window,
-                         methods = NULL, pure_cl = FALSE, thresholds = NULL) {
+                         methods = NULL, pure_cl = FALSE, thresholds = NULL, elr_shift = 0,
+                         tail_multiplier = 1, incurred_basis = FALSE) {
   assert_asat(x)
   if (!is.null(thresholds)) a$selection_thresholds <- thresholds
   tr <- insurer_triangles(x, code)
   pp <- development_pattern(tr$paid, window)
+  pp$tail <- 1 + (pp$tail - 1) * tail_multiplier
   pi <- development_pattern(tr$case_inc, window)
   tail_inc <- if (max(latest_lag(tr$paid)) == 10) incurred_tail(tr, pp$tail) else pi$tail
-  mt <- methods_table(tr$paid, tr$case_inc, tr$premium, pp$f, pi$f, pp$tail, tail_inc)
+  mt <- methods_table(tr$paid, tr$case_inc, tr$premium, pp$f, pi$f, pp$tail, tail_inc, elr_shift)
   mt$method <- if (pure_cl) "CL" else auto_method(mt$pct_dev, a)
-  if (!is.null(methods)) {
+  if (incurred_basis) mt$method <- paste0(auto_method(mt$pct_dev_inc, a), "_INC")
+  if (!is.null(methods) && !incurred_basis) {
     hit <- match(names(methods), mt$ay)
     mt$method[hit] <- unname(methods)
   }

@@ -1,0 +1,9 @@
+# Solvency II standard-formula parameters used for comparison only (SPEC §8, M8).
+reserve_risk_sigma_mvl: 0.09      # motor vehicle liability, reserve risk: Delegated Regulation (EU) 2015/35, Annex II
+multiplier: 3                     # non-life premium and reserve risk capital = 3 * sigma * V: Art. 115
+usp_credibility_10y: 0.74         # USP reserve risk method 2 (Merz-Wuthrich based), motor vehicle liability, 10 years: Annex XVII
+references:
+  - "Commission Delegated Regulation (EU) 2015/35, Article 115"
+  - "Commission Delegated Regulation (EU) 2015/35, Annex II (segment 1, motor vehicle liability, sigma(res) = 9%)"
+  - "Commission Delegated Regulation (EU) 2015/35, Annex XVII (USP standardised methods, credibility factors)"
+note: "Illustrative: single segment, reserve risk only, no premium risk, catastrophe, diversification or deferred tax; not an SCR."

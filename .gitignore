@@ -41,3 +41,4 @@ data/holdout/*
 # Rendered memo intermediates (the PDF itself is committed)
 reports/memo_figures/
 reports/*.typ
+outputs/*.rds
